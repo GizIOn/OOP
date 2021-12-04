@@ -23,10 +23,10 @@ public interface Vector {
     /**
      * Method that multiplies vector by scalar
      *
-     * @param scalar number by which to multiply
+     * @param another vector by which to multiply
      * @return resulting vector
      */
-    BaseVector multiplyByScalar(int scalar);
+    BaseVector scalarProduct(BaseVector another);
 
     /**
      * Method that checks whether two vectors are equal by components

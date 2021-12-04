@@ -1,25 +1,19 @@
 package BaseVector;
 
-import VectorImpls.Vector3dImpl;
-import VectorImpls.Vector5dImpl;
-import VectorImpls.VectorNdImpl;
-
 import java.util.Arrays;
+import java.util.Objects;
 
-import static BaseVector.Operation.ADD;
-import static BaseVector.Operation.SUBTRACT;
+import static BaseVector.Operation.*;
 
 public abstract class BaseVector implements Vector {
     private final int[] mi_componentsArray;
     private final int mi_componentsArrayLength;
 
-    public BaseVector(int dimensions, int[] components) {
-        mi_componentsArray = new int[dimensions];
-        mi_componentsArrayLength = dimensions;
+    public BaseVector(int[] components) {
+        mi_componentsArrayLength = components.length;
+        mi_componentsArray = new int[mi_componentsArrayLength];
 
-        if (dimensions != components.length) throw new IllegalArgumentException();
-
-        System.arraycopy(components, 0, mi_componentsArray, 0, dimensions);
+        System.arraycopy(components, 0, mi_componentsArray, 0, mi_componentsArrayLength);
     }
 
     @Override
@@ -33,13 +27,8 @@ public abstract class BaseVector implements Vector {
     }
 
     @Override
-    public BaseVector multiplyByScalar(int scalar) {
-        int[] componentsArray = new int[mi_componentsArrayLength];
-        for (int i = 0; i < mi_componentsArrayLength; i++) {
-            componentsArray[i] = mi_componentsArray[i] * scalar;
-        }
-
-        return new VectorNdImpl(mi_componentsArrayLength, componentsArray);
+    public BaseVector scalarProduct(BaseVector another) {
+        return processOperation(another, MULTIPLY);
     }
 
     @Override
@@ -61,32 +50,76 @@ public abstract class BaseVector implements Vector {
     }
 
     /**
+     * Get component from vector
+     *
+     * @param index component number to return
+     * @return component of vector
+     */
+    public int getComponent(int index) {
+        return mi_componentsArray[index];
+    }
+
+    /**
+     * Get all components of vector
+     *
+     * @return all components of vector
+     */
+    public int[] getComponentsArray() {
+        return mi_componentsArray.clone();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BaseVector vector = (BaseVector) o;
+        return mi_componentsArrayLength == vector.mi_componentsArrayLength && Arrays.equals(mi_componentsArray, vector.mi_componentsArray);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(mi_componentsArrayLength);
+        result = 31 * result + Arrays.hashCode(mi_componentsArray);
+        return result;
+    }
+
+    /**
      * Method for evaluating expressions with vectors
      *
      * @param another   vector which will be the second operand
      * @param operation what to do with vectors
      * @return resulting vector
      */
-    private BaseVector processOperation(BaseVector another, Operation operation) {
-        if (mi_componentsArrayLength != another.mi_componentsArrayLength) throw new IllegalArgumentException();
+    public abstract BaseVector processOperation(BaseVector another, Operation operation);
 
-        int[] componentsArray = new int[another.mi_componentsArrayLength];
+    /**
+     * Method which executes needed actions
+     *
+     * @param operation              operation to execute
+     * @param componentsArray        components of one operand
+     * @param anotherComponentsArray components of another operand
+     * @return components of resulting array
+     */
+    protected int[] executeOperation(Operation operation, int[] componentsArray, int[] anotherComponentsArray){
+        int[] result=new int[componentsArray.length];
+
         switch (operation) {
             case ADD:
-                for (int i = 0; i < another.mi_componentsArrayLength; i++) {
-                    componentsArray[i] = mi_componentsArray[i] + another.mi_componentsArray[i];
+                for (int i = 0; i < anotherComponentsArray.length; i++) {
+                    result[i] = componentsArray[i] + anotherComponentsArray[i];
                 }
                 break;
             case SUBTRACT:
-                for (int i = 0; i < another.mi_componentsArrayLength; i++) {
-
-                    componentsArray[i] = mi_componentsArray[i] - another.mi_componentsArray[i];
+                for (int i = 0; i < anotherComponentsArray.length; i++) {
+                    result[i] = componentsArray[i] - anotherComponentsArray[i];;
+                }
+                break;
+            case MULTIPLY:
+                for (int i = 0; i < anotherComponentsArray.length; i++) {
+                    result[i] = componentsArray[i] * anotherComponentsArray[i];;
                 }
                 break;
         }
-
-        if (mi_componentsArrayLength == 3) return new Vector3dImpl(componentsArray);
-        if (mi_componentsArrayLength == 5) return new Vector5dImpl(componentsArray);
-        return new VectorNdImpl(mi_componentsArrayLength, componentsArray);
+        return result;
     }
 }
